@@ -1,0 +1,39 @@
+name: release-uboot
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # create releases / upload assets
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build u-boot (SPL + u-boot + FEL image)
+        run: make
+
+      # update.sh expects these three assets flat in the release; sunxi-spl.bin
+      # is produced under build/u-boot/spl/, so stage them together first.
+      - name: Stage release assets
+        run: |
+          mkdir -p dist
+          cp build/u-boot/u-boot-sunxi-with-spl.bin dist/
+          cp build/u-boot/u-boot-dtb.bin            dist/
+          cp build/u-boot/spl/sunxi-spl.bin         dist/
+
+      - name: Compute version tag
+        id: ver
+        run: echo "tag=uboot-$(date -u +'%Y.%m.%d-%H%M%S')" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
+          files: dist/*
+          make_latest: true
