@@ -15,6 +15,9 @@ cd u-boot
 # apply nand patches
 git apply "${HERE}/0001-sunxi-Add-support-for-slc-emulation-on-mlc-NAND.patch"
 git apply "${HERE}/0001-sunxi-nand-Undo-removal-of-DMA-specific-code-that-br.patch"
+# w1 read: optional dest address, so the NAND boot script can read a DIP's
+# DS24xx ID EEPROM into RAM and pick a DT overlay
+git apply "${HERE}/0001-cmd-w1-read-add-optional-dest-address.patch"
 
 # append nand configs to CHIP_defconfig before invoking it
 cat "${HERE}/nand.cfg" >> configs/CHIP_defconfig
